@@ -33,22 +33,34 @@ for artist,tracks in artists.iteritems():
     new_tracks.append(tracks.pop())
     artists[artist] = new_tracks
 
-artists_order = sorted(artists, key=lambda k: len(artists[k]), reverse=True)
+#artists_order = sorted(artists, key=lambda k: len(artists[k]), reverse=True)
 
 max_len = 0
-for i in xrange(len(artists_order)):
-    artist = artists_order[i]
-    tracks = artists[artist]
-    tracks.reverse()
-    tracks.extend([0] * i)
-    tracks.reverse()
+#for i in xrange(len(artists_order)):
+#    artist = artists_order[i]
+#    tracks = artists[artist]
+#    tracks.reverse()
+#    tracks.extend([0] * i)
+#    tracks.reverse()
+#    if len(tracks) > max_len:
+#        max_len = len(tracks)
+
+for artist,tracks in artists.iteritems():
     if len(tracks) > max_len:
         max_len = len(tracks)
 
 for artist,tracks in artists.iteritems():
     if len(tracks) < max_len:
-        total_pad = max_len - len(tracks)
-        tracks.extend([0] * total_pad) 
+        pad = max_len - len(tracks)
+        if pad % 2 == 0:
+            halfsies = pad / 2
+        else:
+            pad += 1
+            halfsies = pad / 2
+        tracks.extend([0] * halfsies)
+        tracks.reverse()
+        tracks.extend([0] * halfsies)
+        tracks.reverse()
 
 columns = []
 for i in xrange(max_len):
