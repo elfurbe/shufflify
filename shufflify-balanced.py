@@ -40,9 +40,9 @@ for artist,tracks in artists.iteritems():
                 r = n / k
                 noise = random.randint(0,10)
                 coinflip = random.randint(0,1)
-                if coinflip == 0
+                if coinflip == 0:
                     r = round(r + (k * noise / 100))
-                else
+                else:
                     r = round(r - (k * noise / 100)) 
                 new_order.append(0)
                 start = max_len - n
@@ -53,9 +53,9 @@ for artist,tracks in artists.iteritems():
                 r = n / k
                 noise = random.randint(0,10)
                 coinflip = random.randint(0,1)
-                if coinflip == 0
+                if coinflip == 0:
                     r = round(r + (k * noise / 100))
-                else
+                else:
                     r = round(r - (k * noise / 100)) 
                 new_order.append(tracks.pop())
                 for i in range(0,r-2):
@@ -63,8 +63,7 @@ for artist,tracks in artists.iteritems():
             else:
                 continue
             n = n - r
-
-         tracks = new_order           
+        tracks = new_order           
             
 columns = []
 for i in range(max_len):
