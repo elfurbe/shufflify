@@ -6,17 +6,6 @@ import sys
 import collections
 from ogr100 import ogr
 
-def gcd(a, b):
-    while b:      
-        a, b = b, a % b
-    return a
-
-def lcm(a, b):
-    return a * b // gcd(a, b)
-
-def lcmm(args):
-    return reduce(lcm, args)
-
 urllist = sys.argv[1]
 with open(urllist, 'r') as infile:
         data = infile.read()
