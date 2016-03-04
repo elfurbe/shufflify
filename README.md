@@ -1,7 +1,7 @@
 # shufflify
-All shuffle sucks, Spotify's included. This is a series of experiments with different methods of shuffling a list of spotify URLs to attempt to ensure two things:
-1) You never hear two songs by the same artist back-to-back
-2) You never end up with a repeating pattern of artists
+All shuffle sucks, Spotify's included. This is a series of experiments employing different methods of shuffling a list of spotify URLs to attempt to ensure two things:<br />
+1. You never hear two songs by the same artist back-to-back
+2. You never end up with a repeating pattern of artists
 
 shufflify.py - the simplest option. Uses a series of random shuffles and dummy inserts to create variance. Actually works pretty well, but it's just TOO EASY. This is actually the only one that works, so far.
 
