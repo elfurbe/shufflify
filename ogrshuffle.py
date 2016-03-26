@@ -19,7 +19,7 @@ for url in urls:
     page = requests.get(url)
     tree = html.fromstring(page.content)
 
-    artist = tree.xpath('//span[@class="artist-name"]/text()')[0]
+    artist = tree.xpath('//span[@class="creator-name"]/text()')[0]
     artists[artist].append(url)
 
 for artist,tracks in artists.iteritems():
