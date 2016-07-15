@@ -1,4 +1,3 @@
-#import abc
 from shufflify import PluginBase
 import random
 
@@ -6,9 +5,6 @@ class shuffler(PluginBase):
 
     description = "The original. Still the best. The rest of this is fucking snake oil."
     
-    def describe(self):
-        return self.description
-
     def shuffle(self,artists):
         max_len = 0
         for artist,tracks in artists.iteritems():

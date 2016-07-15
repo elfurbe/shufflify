@@ -17,11 +17,6 @@ class PluginBase(object):
     description = "string"
 
     @abc.abstractmethod
-    def describe(self):
-        """Print out your description when I tells you"""
-        return self.descritpion
-
-    @abc.abstractmethod
     def shuffle(self,artists):
         """Do yo' shufflin' bidness and return the array of tracks"""
         tracklist = ""
