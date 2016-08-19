@@ -7,9 +7,9 @@ import collections
 import abc
 import imp
 import random
-import requests
+import json
+import subprocess
 from pprint import pprint
-from lxml import html
 
 class PluginBase(object):
     __metaclass__ = abc.ABCMeta
@@ -116,10 +116,10 @@ def main(argv):
     artists = collections.defaultdict(list)
 
     for url in urls:
-        page = requests.get(url)
-        tree = html.fromstring(page.content)
-
-        artist = tree.xpath('//span[@class="creator-name"]/text()')[0]
+        rawjson = subprocess.check_output("curl "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //'
+-e 's/;$//g'",shell=True)
+        parsed = json.loads(rawjson)
+        artist = parsed['artists'][0]['name'] 
         artist = artist.replace(",","")
         #print artist, url
         artists[artist].append(url)
