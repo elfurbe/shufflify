@@ -116,8 +116,7 @@ def main(argv):
     artists = collections.defaultdict(list)
 
     for url in urls:
-        rawjson = subprocess.check_output("curl "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //'
--e 's/;$//g'",shell=True)
+        rawjson = subprocess.check_output("curl "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //' -e 's/;$//g'",shell=True)
         parsed = json.loads(rawjson)
         artist = parsed['artists'][0]['name'] 
         artist = artist.replace(",","")
