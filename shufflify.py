@@ -9,6 +9,7 @@ import imp
 import random
 import json
 import subprocess
+import progressbar
 from pprint import pprint
 
 class PluginBase(object):
@@ -114,14 +115,26 @@ def main(argv):
     random.shuffle(urls)
 
     artists = collections.defaultdict(list)
+    count = 0
+    total = len(urls)
 
+    bar = progressbar.ProgressBar(redirect_stdout=True,max_value=total)
     for url in urls:
-        rawjson = subprocess.check_output("curl "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //' -e 's/;$//g'",shell=True)
-        parsed = json.loads(rawjson)
+        try:
+            rawjson = subprocess.check_output("curl -s "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //' -e 's/;$//g'",shell=True)
+            parsed = json.loads(rawjson)
+            count += 1
+        except ValueError:
+            print "Parse failed for: "+url
+            count += 1
+            continue
         artist = parsed['artists'][0]['name'] 
         artist = artist.replace(",","")
         #print artist, url
         artists[artist].append(url)
+        bar.update(count)
+
+    bar.finish()
 
     if len(artists) <= 1:
         print "There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick."
