@@ -14,8 +14,14 @@ class Song:
     def __init__(self, title, artist, album, albumIndex):
         self.m_title      = title
         self.m_artist     = artist
+        self.m_album      = album
         self.m_albumIndex = albumIndex
     
+    ## Output stream operator
+    # @return The string representation of the song
+    def __str__(self):
+        return self.m_artist + ": " + self.m_title + " (" + self.m_album + " [" + str(self.m_albumIndex) + "])"
+        
     ## Equality comparison
     # @param other The other Song object being compared
     # @return Returns true if the two objects are the same, false otherwise
@@ -53,5 +59,8 @@ songList.append(Song("Barbie Girl", "Aqua", "Shit", 2))
 songList.append(Song("Some other horseshit", "Rick Astley", "Fuck", 2))
 
 indices = sh.shuffle(songList)
+songsShuffled = [ songList[i] for i in indices]
+for song in songsShuffled:
+    print song
 
 

@@ -21,9 +21,10 @@ class PluginBase(object):
         tracklist = ""
         return tracklist
 
-def evaluate(individual):
-    #TODO - add Adam's other criteria here
-        
+## Method for evaluating an individual gene.
+# @param individual The gene being evaluated
+# @return The tuple of scores corresponding to each criterion
+def evaluate(individual):    
     #count the number of times an artist plays back-to-back
     N = len(individual)
     count = 0
@@ -31,13 +32,16 @@ def evaluate(individual):
         index1 = int(individual[i])
         index2 = int(individual[i+1])
         if songList[index1].sameArtist(songList[index2]) == True:
-            count += 1    
+            count += 1
+    
+    #TODO - add Adam's other criteria here
+ 
     return [count]
 
 class shuffler(PluginBase):
-
+    
     description = "Dan's Genetic Algorithm juju."
-
+    
     def shuffle(self,artists):
         #TODO - change this to Multi to accomodate multiple weighting factors
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -64,12 +68,9 @@ class shuffler(PluginBase):
         #print ind1.fitness.valid
         #print ind1.fitness
         
-        #if you have fewer than the total number of permutations, just
-        #evaluate all the permutations at once
+        #the number of genes being evaluated
         popSize = 100
-        if IND_SIZE < 7:
-            popSize = math.factorial(IND_SIZE)
-                
+        
         #create the population
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         pop = toolbox.population(n=popSize)
@@ -82,21 +83,21 @@ class shuffler(PluginBase):
         #toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.2)
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("evaluate", evaluate)
-
         
-        NGEN  = 2
-        CXPB  = 0.2
-        MUTPB = 0.1
+        
+        NGEN  = 2   #number of generations
+        CXPB  = 0.2 #cross-over probability
+        MUTPB = 0.1 #mutation probability
         for g in range(NGEN):
             #TODO - add statistics gathering
             
-            # Select the next generation individuals
+            #select the next generation individuals
             offspring = toolbox.select(pop, len(pop))
-            # Clone the selected individuals
+            #clone the selected individuals
             offspring = map(toolbox.clone, offspring)
             
             #TODO - figure out mating algorithm for permutations
-            # Apply crossover on the offspring
+            #apply crossover on the offspring
             #for child1, child2 in zip(offspring[::2], offspring[1::2]):
             #    if random.random() < CXPB:
             #        toolbox.mate(child1, child2)
@@ -104,31 +105,29 @@ class shuffler(PluginBase):
             #        del child2.fitness.values
             
             #TODO - figure out mutation algorithm for permutations
-            # Apply mutation on the offspring
+            #apply mutation on the offspring
             #for mutant in offspring:
             #    if random.random() < MUTPB:
             #        toolbox.mutate(mutant)
             #        del mutant.fitness.values
 
-            # Evaluate the individuals with an invalid fitness
+            #evaluate the individuals with an invalid fitness
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
                 
-            # The population is entirely replaced by the offspring
+            #the population is entirely replaced by the offspring
             pop[:] = offspring
         
-        
-        #TODO - make this more efficient
         #get the best sorting
+        #TODO - make this more efficient
         best = pop[0]
         minFitness = best.fitness
         for i in xrange(popSize):
             if pop[i].fitness > minFitness:
                 minFitness = pop[i].fitness
                 best = pop[i]
-                
-        print "best = " + str(best)
-        print "  " + str(best.fitness)
+        
+        #return the best reordering index vector
         return best
