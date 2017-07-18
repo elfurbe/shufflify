@@ -31,6 +31,7 @@ def usage():
     print "-p, --plugin=PLUGIN      shuffling plugin, default is furbinate"
     print "-i, --infile=FILE        input file of spotify URLs"
     print "-o, --outfile=FILE       output to specified file instead of stdout"
+    print "-u, --url=PLAYLISTURL    public playlist url"
 
 def loadImports(path):
     files = os.listdir(path)
@@ -65,7 +66,7 @@ def main(argv):
     plugins = parse_plugins(plugin_dir)
 
     try:
-        opts, args = getopt.getopt(argv,"hlp:i:o:",["help","list","plugin=","infile=","outfile="])
+        opts, args = getopt.getopt(argv,"hlp:i:o:u:",["help","list","plugin=","infile=","outfile=","url="])
     except getopt.GetoptError, exc:
         print exc.msg
         usage()
@@ -74,6 +75,7 @@ def main(argv):
     plugin = ''
     infile = ''
     outfile = ''
+    url = ''
     for opt, arg in opts:
         if opt in ("-h","--help"):
             usage()
@@ -87,9 +89,11 @@ def main(argv):
             infile = arg
         elif opt in ("-o","--outfile"):
             outfile = arg
+        elif opt in ("-u","--url"):
+            url = arg
 
-    if not infile:
-        print "Must specify input file"
+    if not infile and not url:
+        print "Must specify input file or playlist url"
         usage()
         sys.exit(2)
 
@@ -97,7 +101,10 @@ def main(argv):
         plugin = "furbinate"
 
     print 'Plugin:', plugin
-    print 'Input file:', infile
+    if infile:
+        print 'Input file:', infile
+    elif url:
+        print 'Input url:', url
     
     if outfile:
         print 'Output file:', outfile
@@ -108,33 +115,43 @@ def main(argv):
     active = shuffler()
     #print active.description
 
-    with open(infile, 'r') as infile:
-        data = infile.read()
-
-    urls = data.splitlines()
-    random.shuffle(urls)
-
     artists = collections.defaultdict(list)
-    count = 0
-    total = len(urls)
+    if infile:
+        with open(infile, 'r') as infile:
+            data = infile.read()
 
-    bar = progressbar.ProgressBar(redirect_stdout=True,max_value=total)
-    for url in urls:
-        try:
-            rawjson = subprocess.check_output("curl -s "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //' -e 's/;$//g'",shell=True)
-            parsed = json.loads(rawjson)
-            count += 1
-        except ValueError:
-            print "Parse failed for: "+url
-            count += 1
-            continue
-        artist = parsed['artists'][0]['name'] 
-        artist = artist.replace(",","")
-        #print artist, url
-        artists[artist].append(url)
-        bar.update(count)
+        urls = data.splitlines()
+        random.shuffle(urls)
+        count = 0
+        total = len(urls)
 
-    bar.finish()
+        bar = progressbar.ProgressBar(redirect_stdout=True,max_value=total)
+        for url in urls:
+            try:
+                rawjson = subprocess.check_output("curl -s "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^[ \t]*Spotify.Entity\ =\ //' -e 's/;$//g'",shell=True)
+                parsed = json.loads(rawjson)
+                count += 1
+            except ValueError:
+                print "Parse failed for: "+url
+                count += 1
+                continue
+            artist = parsed['artists'][0]['name'] 
+            artist = artist.replace(",","")
+            #print artist, url
+            artists[artist].append(url)
+            bar.update(count)
+
+        bar.finish()
+    elif url:
+        rawjson = subprocess.check_output("curl -s "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^.*Spotify.Entity\ =\ //g' -e 's/;$//g'",shell=True)
+        parsed = json.loads(rawjson)
+        if parsed["tracks"]["total"] > parsed["tracks"]["limit"]:
+            print "Playlists with more than "+str(parsed["tracks"]["limit"])+" tracks do not work by url."
+            sys.exit(3)
+        for item in parsed["tracks"]["items"]:
+            artist = item['track']['artists'][0]['name']
+            trackurl = item['track']['external_urls']['spotify']
+            artists[artist].append(trackurl)
 
     if len(artists) <= 1:
         print "There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick."
