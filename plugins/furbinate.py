@@ -8,6 +8,7 @@ class shuffler(PluginBase):
     def shuffle(self,artists):
         max_len = 0
         for artist,tracks in artists.iteritems():
+            print artist+": "+str(len(tracks))
             if len(tracks) > max_len:
                 max_len = len(tracks)
 
@@ -31,7 +32,14 @@ class shuffler(PluginBase):
             random.shuffle(column)
             if i > 0:
                 last_column = columns[-1]
-                while last_column[-1].split(",")[0] == column[0].split(",")[0]:
-                    random.shuffle(column)
+                shuffles = 0
+                colnumtracks = len(column)
+                if (colnumtracks == 1) and (last_column[-1].split(",")[0] == column[0].split(",")[0]):
+                    print "Welp, we fucked. "+column[0].split(",")[0]+" is the only artist in this column." 
+                else:
+                    while (last_column[-1].split(",")[0] == column[0].split(",")[0]) and (shuffles < 10):
+                        print "Artist match for "+column[0].split(",")[0]+". Shufflin': "+str(shuffles)
+                        random.shuffle(column)
+                        shuffles += 1
             columns.append(column)
         return columns
