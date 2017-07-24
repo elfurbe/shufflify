@@ -150,7 +150,9 @@ def main(argv):
             sys.exit(3)
         for item in parsed["tracks"]["items"]:
             artist = item['track']['artists'][0]['name']
+            artist = artist.replace(",","")
             trackurl = item['track']['external_urls']['spotify']
+            #print artist, trackurl
             artists[artist].append(trackurl)
 
     if len(artists) <= 1:
