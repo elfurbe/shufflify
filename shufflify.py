@@ -28,6 +28,7 @@ def usage():
     print "usage: ",sys.argv[0]," [-hl] -p PLUGIN -i FILENAME [-o FILENAME]"
     print "-h, --help               show this help"
     print "-l, --list               list available shuffle plugins"
+    print "-e, --export             print track metadata as export-friendly text and exit"
     print "-p, --plugin=PLUGIN      shuffling plugin, default is furbinate"
     print "-i, --infile=FILE        input file of spotify URLs"
     print "-o, --outfile=FILE       output to specified file instead of stdout"
@@ -66,7 +67,7 @@ def main(argv):
     plugins = parse_plugins(plugin_dir)
 
     try:
-        opts, args = getopt.getopt(argv,"hlp:i:o:u:",["help","list","plugin=","infile=","outfile=","url="])
+        opts, args = getopt.getopt(argv,"hlep:i:o:u:",["help","list","export","plugin=","infile=","outfile=","url="])
     except getopt.GetoptError, exc:
         print exc.msg
         usage()
@@ -76,6 +77,7 @@ def main(argv):
     infile = ''
     outfile = ''
     url = ''
+    export = False
     for opt, arg in opts:
         if opt in ("-h","--help"):
             usage()
@@ -91,6 +93,8 @@ def main(argv):
             outfile = arg
         elif opt in ("-u","--url"):
             url = arg
+        elif opt in ("-e","--export"):
+            export = True
 
     if not infile and not url:
         print "Must specify input file or playlist url"
@@ -135,25 +139,44 @@ def main(argv):
                 print "Parse failed for: "+url
                 count += 1
                 continue
+            #print json.dumps(parsed, indent=2)
             artist = parsed['artists'][0]['name'] 
+            album = parsed['album']['name']
+            track = parsed['name']
+            if export:
+                print track+" - "+artist+" - "+album
+                continue
             artist = artist.replace(",","")
             #print artist, url
             artists[artist].append(url)
             bar.update(count)
 
+        #sys.exit(1)
         bar.finish()
     elif url:
         rawjson = subprocess.check_output("curl -s "+url+" 2>&1| grep Spotify.Entity | sed -e 's/^.*Spotify.Entity\ =\ //g' -e 's/;$//g'",shell=True)
         parsed = json.loads(rawjson)
+        #print json.dumps(parsed, indent=2)
+        #sys.exit(1)
         if parsed["tracks"]["total"] > parsed["tracks"]["limit"]:
             print "Playlists with more than "+str(parsed["tracks"]["limit"])+" tracks do not work by url."
             sys.exit(3)
-        for item in parsed["tracks"]["items"]:
-            artist = item['track']['artists'][0]['name']
-            artist = artist.replace(",","")
-            trackurl = item['track']['external_urls']['spotify']
-            #print artist, trackurl
-            artists[artist].append(trackurl)
+        for item in parsed['tracks']['items']:
+            #print json.dumps(item, indent=4)
+            #sys.exit(1)
+            if not item['is_local']:
+                artist = item['track']['artists'][0]['name']
+                album = item['track']['album']['name']
+                track = item['track']['name']
+                if export:
+                    print track+" - "+artist+" - "+album
+                    continue
+                artist = artist.replace(",","")
+                trackurl = item['track']['external_urls']['spotify']
+                #print artist, trackurl
+                artists[artist].append(trackurl)
+    if export:
+        sys.exit()
 
     if len(artists) <= 1:
         print "There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick."
