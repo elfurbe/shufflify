@@ -9,7 +9,7 @@ def ogr(length):
 
 class shuffler(PluginBase):
 
-    description = "Uses an optimal golomb ruler to space artist tracks in a non-uniform way"
+    description = "Uses an optimal golomb ruler to space artist tracks in a non-uniform way (old)"
     
     def shuffle(self,artists):
         for artist,tracks in artists.items():

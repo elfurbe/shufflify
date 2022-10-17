@@ -3,7 +3,7 @@ import random
 
 class shuffler(PluginBase):
 
-    description = "The original. Still the best. The rest of this is fucking snake oil."
+    description = "The original. Still the best. The rest of this is fucking snake oil. (old)"
     
     def shuffle(self,artists):
         max_len = 0
