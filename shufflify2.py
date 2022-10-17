@@ -15,6 +15,7 @@ import configparser
 import asyncio
 from spotipy2 import Spotify
 from spotipy2.auth import ClientCredentialsFlow
+import argparse
 
 class PluginBase(object):
     __metaclass__ = abc.ABCMeta
@@ -26,16 +27,6 @@ class PluginBase(object):
         """Do yo' shufflin' bidness and return the array of tracks"""
         tracklist = ""
         return tracklist
-
-def usage():
-    print("usage: ",sys.argv[0]," [-hl] -p PLUGIN -i FILENAME [-o FILENAME]")
-    print("-h, --help               show this help")
-    print("-l, --list               list available shuffle plugins")
-    print("-e, --export             print track metadata as export-friendly text and exit")
-    print("-p, --plugin=PLUGIN      shuffling plugin, default is furbinate")
-    print("-i, --infile=FILE        input file of spotify URLs")
-    print("-o, --outfile=FILE       output to specified file instead of stdout")
-    print("-u, --url=PLAYLISTURL    public playlist url")
 
 def loadImports(path):
     files = os.listdir(path)
@@ -116,63 +107,31 @@ def main(argv):
     plugin_dir = "plugins"
     plugins = parse_plugins(plugin_dir)
 
-    try:
-        opts, args = getopt.getopt(argv,"hlep:i:o:u:",["help","list","export","plugin=","infile=","outfile=","url="])
-    except getopt.GetoptError(exc):
-        print(exc.msg)
-        usage()
-        sys.exit(2)
+    parser = argparse.ArgumentParser(description="Shufflify: All Shuffle Sucks, Guess We'll Do It Ourselves")
+    parser.add_argument("-l","--list", action="store_true", help="List available plugins")
+    parser.add_argument("-p","--plugin", type=str, default="furbinate2", help="Choose specific plugin, default: furbinate2")
+    parser.add_argument("-e","--export", action="store_true")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-i","--infile", type=str)
+    group.add_argument("-u","--url", type=str)
 
-    plugin = ''
-    infile = ''
-    outfile = ''
-    url = ''
-    export = False
-    for opt, arg in opts:
-        if opt in ("-h","--help"):
-            usage()
-            sys.exit(0)
-        elif opt in ("-l","--list"):
-            list_plugins(plugins)
-            sys.exit(0)
-        elif opt in ("-p","--plugin"):
-            plugin = arg
-        elif opt in ("-i","--infile"):
-            infile = arg
-        elif opt in ("-o","--outfile"):
-            outfile = arg
-        elif opt in ("-u","--url"):
-            url = arg
-        elif opt in ("-e","--export"):
-            export = True
+    args = parser.parse_args()
 
-    if not infile and not url:
-        print("Must specify input file or playlist url")
-        usage()
-        sys.exit(2)
+    if args.list:
+        list_plugins(plugins)
+        sys.exit(0)
 
-    if not plugin:
-        plugin = "furbinate2"
-
+    plugin = args.plugin
     print('Plugin:', plugin)
-    if infile:
-        print('Input file:', infile)
-    elif url:
-        print('Input url:', url)
-        print("")
     
-    if outfile:
-        print('Output file:', outfile)
-
-    #plugin = __import__(plugin)
-    #imp.load_source("shuffler","plugins/"+plugin+".py")
     SourceFileLoader("shuffler","plugins/"+plugin+".py").load_module()
     from shuffler import shuffler
     active = shuffler()
 
     artists = collections.defaultdict(list)
-    if infile:
-        with open(infile, 'r') as infile:
+    if args.infile:
+        print(f"input file: {args.infile}")
+        with open(args.infile, 'r') as infile:
             data = infile.read()
 
         urls = data.splitlines()
@@ -180,25 +139,24 @@ def main(argv):
         count = 0
         total = len(urls)
 
-        bar = progressbar.ProgressBar(redirect_stdout=True,max_value=total)
-        for url in urls:
-            count += 1
+        bar = progressbar.ProgressBar(redirect_stdout=True)
+        for url in bar(urls):
+            if url.startswith('https://open.spotify.com/local'):
+                continue
             track_obj = asyncio.run(get_track(url))
             track = str(track_obj.name)
             album = str(track_obj.album)
             artist = str(track_obj.artists[0].name)
-            if export:
+            if args.export:
                 print(track+" - "+artist+" - "+album)
                 continue
             artist = artist.replace(",","")
             artists[artist].append(url)
-            bar.update(count)
 
-        #sys.exit(1)
-        bar.finish()
-
-    elif url:
-        playlist = asyncio.run(get_playlist_metadata(url))
+    elif args.url:
+        print(f"Input url: {args.url}")
+        print("")
+        playlist = asyncio.run(get_playlist_metadata(args.url))
         print(f"Playlist: {playlist.name}")
         print(f"Playlist ID: {playlist.id}")
         tracks = asyncio.run(process_playlist(playlist.id))
@@ -210,14 +168,11 @@ def main(argv):
                 artist = str(track_obj.artists[0].name)
                 album = str(track_obj.album)
                 trackurl = str(track_obj.external_urls['spotify'])
-                if export:
+                if args.export:
                     print(track+" - "+artist+" - "+album)
                     continue
                 artist = artist.replace(",","")
                 artists[artist].append(trackurl)
-
-    if export:
-        sys.exit()
 
     if len(artists) <= 1:
         print("There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick.")
