@@ -45,6 +45,7 @@ def parse_plugins(plugindir):
     return plugins
 
 def list_plugins(plugins):
+    print("Available plugins:\n")
     for plugin in plugins:
         SourceFileLoader("shuffler","plugins/"+plugin+".py").load_module()
         from shuffler import shuffler
