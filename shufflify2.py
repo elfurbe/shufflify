@@ -74,6 +74,21 @@ async def get_track(url):
         track = await s.get_track(track_id)
         return track
 
+async def get_playlist_metadata(url):
+    client = Spotify(
+        ClientCredentialsFlow(
+            client_id = config['spotify']['client_id'],
+            client_secret = config['spotify']['client_secret']
+        )
+    )
+
+    playlist_id = str(url.rsplit('/', 1)[-1].rsplit('?', 1)[0])
+    async with client as s:
+        playlist = await s.get_playlist(playlist_id)
+        return playlist
+
+
+
 async def get_playlist_tracks(playlist_id):
     client = Spotify(
         ClientCredentialsFlow(
@@ -86,10 +101,7 @@ async def get_playlist_tracks(playlist_id):
         async for track in s.iter_playlist_tracks(playlist_id):
             yield track
 
-async def process_playlist(url):
-    playlist_id = str(url.rsplit('/', 1)[-1].rsplit('?', 1)[0])
-    print(f"playlist id: {playlist_id}")
-
+async def process_playlist(playlist_id):
     tracks = []
     async for item in get_playlist_tracks(playlist_id):
         tracks.append(item.track)
@@ -147,6 +159,7 @@ def main(argv):
         print('Input file:', infile)
     elif url:
         print('Input url:', url)
+        print("")
     
     if outfile:
         print('Output file:', outfile)
@@ -185,8 +198,11 @@ def main(argv):
         bar.finish()
 
     elif url:
-        tracks = asyncio.run(process_playlist(url))
-        print(f"track count: {len(tracks)}")
+        playlist = asyncio.run(get_playlist_metadata(url))
+        print(f"Playlist: {playlist.name}")
+        print(f"Playlist ID: {playlist.id}")
+        tracks = asyncio.run(process_playlist(playlist.id))
+        print(f"Track Count: {len(tracks)}")
         print("")
         for track_obj in tracks:
             if not track_obj.is_local:
@@ -211,6 +227,7 @@ def main(argv):
         sys.exit()
     
     columns = active.shuffle(artists)
+    print("")
     for column in columns:
         for tracks in column:
             explode = tracks.split(",")

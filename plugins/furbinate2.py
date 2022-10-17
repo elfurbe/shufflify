@@ -36,6 +36,7 @@ class shuffler(PluginBase):
                 colnumtracks = len(column)
                 if (colnumtracks == 1) and (last_column[-1].split(",")[0] == column[0].split(",")[0]):
                     print("Welp, we fucked. "+column[0].split(",")[0]+" is the only artist in this column.")
+                    print("")
                 else:
                     while (last_column[-1].split(",")[0] == column[0].split(",")[0]) and (shuffles < 10):
                         print("Artist match for "+column[0].split(",")[0]+". Shufflin': "+str(shuffles))
