@@ -46,10 +46,10 @@ def parse_plugins(plugindir):
 
 def list_plugins(plugins):
     for plugin in plugins:
-        imp.load_source("shuffler","plugins/"+plugin+".py")
+        SourceFileLoader("shuffler","plugins/"+plugin+".py").load_module()
         from shuffler import shuffler
         active = shuffler()
-        print(plugin+":\t"+active.description).expandtabs(15)
+        print(f"{plugin}:\t{active.description}".expandtabs(15))
         active = None
 
 async def get_track(url):
@@ -108,10 +108,10 @@ def main(argv):
     plugins = parse_plugins(plugin_dir)
 
     parser = argparse.ArgumentParser(description="Shufflify: All Shuffle Sucks, Guess We'll Do It Ourselves")
-    parser.add_argument("-l","--list", action="store_true", help="List available plugins")
     parser.add_argument("-p","--plugin", type=str, default="furbinate2", help="Choose specific plugin, default: furbinate2")
     parser.add_argument("-e","--export", action="store_true")
     group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-l","--list", action="store_true", help="List available plugins")
     group.add_argument("-i","--infile", type=str)
     group.add_argument("-u","--url", type=str)
 
@@ -130,7 +130,7 @@ def main(argv):
 
     artists = collections.defaultdict(list)
     if args.infile:
-        print(f"input file: {args.infile}")
+        print(f"input file: {args.infile}\n")
         with open(args.infile, 'r') as infile:
             data = infile.read()
 
@@ -173,6 +173,12 @@ def main(argv):
                     continue
                 artist = artist.replace(",","")
                 artists[artist].append(trackurl)
+
+    if args.export:
+        print("")
+        print("A list of tracks as text formatted like above is what Jason wanted, so that's what it does and has done.")
+        print("And now, I die.")
+        sys.exit(0)
 
     if len(artists) <= 1:
         print("There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick.")
