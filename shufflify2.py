@@ -182,18 +182,12 @@ def main(argv):
         sys.exit(0)
 
     if len(artists) <= 1:
-        print("There's only one artist, you fuckin' maroon.\n*WAVES HANDS* THERE! It's shuffled, dick.")
-        for artist,tracks in artists.items():
-            for track in tracks:
-                print(track)
-        sys.exit()
+        print("There's only one artist, you fuckin' maroon. No soup for you.")
+        sys.exit(1)
     
-    columns = active.shuffle(artists)
+    tracklist = active.shuffle(artists)
     print("")
-    for column in columns:
-        for tracks in column:
-            explode = tracks.split(",")
-            print(explode[1])
+    print(*tracklist, sep="\n")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

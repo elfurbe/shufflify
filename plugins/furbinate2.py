@@ -1,3 +1,4 @@
+from pprint import pp
 from shufflify2 import PluginBase
 import random
 
@@ -43,4 +44,11 @@ class shuffler(PluginBase):
                         random.shuffle(column)
                         shuffles += 1
             columns.append(column)
-        return columns
+
+        tracklist_ordered = []
+        for column in columns:
+            for track in column:
+                explode = track.split(",")
+                tracklist_ordered.append(explode[1])
+
+        return tracklist_ordered
