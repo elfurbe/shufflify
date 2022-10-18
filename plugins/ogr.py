@@ -58,4 +58,10 @@ class shuffler(PluginBase):
                         column[-1] = first
             columns.append(column)
 
-        return columns
+        tracklist_ordered = []
+        for column in columns:
+            for track in column:
+                explode = track.split(",")
+                tracklist_ordered.append(explode[1])
+
+        return tracklist_ordered
